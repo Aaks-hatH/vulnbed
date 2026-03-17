@@ -1,0 +1,6 @@
+[
+  {"id":1,"name":"Admin User","email":"admin@vulnbank.com","role":"admin","balance":98450.00,"password_hash":"$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy","ssn":"XXX-XX-1234","phone":"+1-555-0100"},
+  {"id":2,"name":"Alice Johnson","email":"alice@example.com","role":"user","balance":12300.50,"password_hash":"$2b$10$somehashedpasswordhere123456789abcdef","ssn":"XXX-XX-5678"},
+  {"id":3,"name":"Bob Smith","email":"bob@example.com","role":"user","balance":7890.25,"password_hash":"$2b$10$anotherhashhere987654321zyxwvutsrq","ssn":"XXX-XX-9012"},
+  {"id":4,"name":"Charlie Brown","email":"charlie@example.com","role":"user","balance":31000.00,"password_hash":"$2b$10$yetanotherhash112233445566778899aa","ssn":"XXX-XX-3456"}
+]
