@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer Funds — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 560px; margin: 40px auto; padding: 0 24px; }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; color: #1a365d; }
+    .sub { color: #718096; font-size: .88rem; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 20px; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+    input, select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: .9rem;
+      margin-bottom: 14px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus, select:focus { border-color: #3182ce; }
+    .amount-row { display: flex; gap: 10px; }
+    .amount-row select { width: 90px; flex-shrink: 0; }
+    .amount-row input { flex: 1; }
+    .btn { width: 100%; padding: 11px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: .92rem; cursor: pointer; }
+    .btn:hover { background: #1a365d; }
+    .warning {
+      background: #fffbeb;
+      border: 1px solid #f6e05e;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: .84rem;
+      color: #744210;
+      margin-bottom: 16px;
+    }
+    /* CSRF: no token in form */
+    .vuln-badge {
+      display: inline-block;
+      background: #fed7d7;
+      color: #c53030;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="transfer.html">Transfer</a>
+  <a href="profile.html">Profile</a>
+</nav>
+
+<div class="container">
+  <h1>Transfer Funds <span class="vuln-badge">CSRF VULNERABLE</span></h1>
+  <p class="sub">Send money to another account instantly</p>
+
+  <div class="warning">
+    This form has no CSRF token. A malicious third-party site can submit this form on behalf of a logged-in user.
+  </div>
+
+  <div class="card">
+    <!--
+      VULNERABLE: No CSRF token, no SameSite cookie, no origin validation.
+      Attacker can host:
+        <form action="https://vulnbank.example.com/api/v1/transfer" method="POST">
+          <input name="to_account" value="ATTACKER_ACCOUNT">
+          <input name="amount" value="10000">
+        </form>
+        <script>document.forms[0].submit()</script>
+    -->
+    <form id="transfer-form" method="POST" action="api/v1/transfer">
+      <label>From Account</label>
+      <select name="from_account">
+        <option value="ACC001">Current Account ••• 4521 — $12,450.00</option>
+        <option value="ACC002">Savings Account ••• 7823 — $45,200.00</option>
+      </select>
+
+      <label>To Account Number</label>
+      <input type="text" name="to_account" placeholder="Enter 8-digit account number" id="to-account">
+
+      <label>Recipient Name</label>
+      <!-- XSS: recipient name reflected in confirmation -->
+      <input type="text" name="recipient_name" placeholder="John Smith" id="recipient-name">
+
+      <label>Amount</label>
+      <div class="amount-row">
+        <select name="currency">
+          <option>USD</option>
+          <option>EUR</option>
+          <option>GBP</option>
+        </select>
+        <input type="number" name="amount" placeholder="0.00" min="0.01" step="0.01">
+      </div>
+
+      <label>Reference</label>
+      <input type="text" name="reference" placeholder="Payment reference" id="reference">
+
+      <!-- Hidden fields leaking internals -->
+      <input type="hidden" name="session_id" value="sess_a1b2c3d4e5f6">
+      <input type="hidden" name="api_version" value="v1">
+
+      <button type="submit" class="btn">Send Transfer</button>
+    </form>
+  </div>
+
+  <!-- Second form: bill payment (also CSRF vulnerable) -->
+  <div class="card">
+    <h3 style="margin-bottom:14px">Pay a Bill</h3>
+    <form method="POST" action="api/v1/pay-bill">
+      <label>Biller</label>
+      <select name="biller_id">
+        <option value="1">Electric Company — ACC 88823</option>
+        <option value="2">Internet Provider — ACC 12345</option>
+        <option value="3">Water Authority — ACC 55678</option>
+      </select>
+      <label>Amount</label>
+      <input type="number" name="amount" placeholder="0.00">
+      <button type="submit" class="btn" style="background:#38a169">Pay Bill</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('transfer-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = document.getElementById('recipient-name').value;
+    // XSS: reflects recipient name without escaping
+    alert('Transfer submitted to: ' + name);
+  });
+</script>
+
+</body>
+</html>

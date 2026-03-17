@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 32px;
+      width: 380px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.1);
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 6px; color: #1a365d; }
+    p.sub { color: #718096; font-size: .88rem; margin-bottom: 24px; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+    input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: .9rem;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    input:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49,130,206,.15); }
+    .btn { width: 100%; padding: 10px; background: #1a365d; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: .9rem; cursor: pointer; margin-top: 4px; }
+    .btn:hover { background: #2a4a7f; }
+    .links { display: flex; justify-content: space-between; margin-top: 16px; font-size: .82rem; }
+    .links a { color: #3182ce; text-decoration: none; }
+    .msg { padding: 10px 12px; border-radius: 6px; font-size: .84rem; margin-bottom: 14px; }
+    .msg-err { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+    .msg-ok  { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+    nav { position: fixed; top: 0; left: 0; right: 0; background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; z-index: 10; }
+    nav .brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    body { padding-top: 56px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="transfer.html">Transfer</a>
+</nav>
+
+<div class="card">
+  <h1>Sign In</h1>
+  <p class="sub">Access your VulnBank account</p>
+
+  <div id="msg"></div>
+
+  <!-- VULNERABLE: username param injectable, no CSRF token -->
+  <form id="login-form" method="POST" action="api/v1/auth/login">
+    <label for="username">Username or Email</label>
+    <input type="text" id="username" name="username" placeholder="john@example.com" autocomplete="username">
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password">
+
+    <!-- Hidden field exposing internal info -->
+    <input type="hidden" name="redirect" value="/dashboard">
+    <input type="hidden" name="client_id" value="web_frontend_v1">
+
+    <button type="submit" class="btn">Sign In</button>
+  </form>
+
+  <div class="links">
+    <a href="forgot-password.html">Forgot password?</a>
+    <a href="register.html">Create account</a>
+  </div>
+</div>
+
+<script>
+  // Simulated login — shows error message reflecting user input (XSS sink)
+  document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var user = document.getElementById('username').value;
+    var msg = document.getElementById('msg');
+    // VULNERABLE: reflects username directly without escaping
+    msg.className = 'msg msg-err';
+    msg.innerHTML = 'Login failed for user: <strong>' + user + '</strong>. Invalid credentials.';
+  });
+</script>
+
+</body>
+</html>

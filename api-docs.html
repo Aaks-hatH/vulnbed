@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Docs — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 840px; margin: 40px auto; padding: 0 24px 60px; }
+    h1 { font-size: 1.4rem; color: #1a365d; margin-bottom: 8px; }
+    .sub { color: #718096; font-size: .88rem; margin-bottom: 28px; }
+    .endpoint {
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .ep-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      cursor: pointer;
+    }
+    .method {
+      font-family: monospace;
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      min-width: 52px;
+      text-align: center;
+    }
+    .GET    { background: #ebf8ff; color: #2b6cb0; }
+    .POST   { background: #f0fff4; color: #276749; }
+    .PUT    { background: #fefcbf; color: #744210; }
+    .DELETE { background: #fff5f5; color: #c53030; }
+    .path { font-family: monospace; font-size: .88rem; color: #2d3748; flex: 1; }
+    .auth-tag {
+      font-size: .72rem;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .no-auth { background: #fed7d7; color: #c53030; }
+    .auth    { background: #bee3f8; color: #2b6cb0; }
+    .ep-body {
+      padding: 14px 16px;
+      border-top: 1px solid #f7fafc;
+      font-size: .84rem;
+      color: #4a5568;
+      line-height: 1.6;
+    }
+    pre {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: .8rem;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1a365d; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="api-docs.html">API</a>
+</nav>
+
+<div class="container">
+  <h1>REST API Documentation</h1>
+  <p class="sub">Base URL: <code>https://vulnbank.example.com/api/v1</code> — No authentication required on most endpoints</p>
+
+  <div class="section-title">Authentication</div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/auth/login</span>
+      <span class="auth-tag no-auth">No Auth</span>
+    </div>
+    <div class="ep-body">
+      Authenticate user. Returns JWT token. <strong>No rate limiting.</strong>
+      <pre>{ "username": "admin@vulnbank.com", "password": "password123" }</pre>
+      Response: <pre>{ "token": "eyJhbGci...", "user_id": 1, "role": "admin" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/auth/reset?email=user@example.com&amp;redirect=<strong style="color:#c53030">http://evil.com</strong></span>
+      <span class="auth-tag no-auth">Open Redirect</span>
+    </div>
+    <div class="ep-body">
+      Password reset. The <code>redirect</code> parameter is not validated — <strong>open redirect vulnerability</strong>.
+      Attacker can use: <code>/api/v1/auth/reset?email=victim@bank.com&amp;redirect=https://phishing.example.com</code>
+    </div>
+  </div>
+
+  <div class="section-title">Users</div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/users</span>
+      <span class="auth-tag no-auth">No Auth — IDOR</span>
+    </div>
+    <div class="ep-body">
+      Returns all users. No authentication required.
+      <pre>[{"id":1,"name":"Admin","email":"admin@vulnbank.com","balance":98450},
+ {"id":2,"name":"Alice","email":"alice@example.com","balance":12300}]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/users/<strong style="color:#c53030">{id}</strong></span>
+      <span class="auth-tag no-auth">IDOR</span>
+    </div>
+    <div class="ep-body">
+      Get user by ID. No ownership check — any ID works.
+      Try: <a href="api/v1/users/1.json">api/v1/users/1</a>, <a href="api/v1/users/2.json">api/v1/users/2</a>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/users/<strong style="color:#c53030">{id}</strong>/transactions</span>
+      <span class="auth-tag no-auth">IDOR</span>
+    </div>
+    <div class="ep-body">
+      Returns all transactions for any user ID. No authentication.
+    </div>
+  </div>
+
+  <div class="section-title">Transfers</div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/transfer</span>
+      <span class="auth-tag no-auth">CSRF Vulnerable</span>
+    </div>
+    <div class="ep-body">
+      Execute money transfer. No CSRF token, no SameSite cookie.
+      <pre>{ "from_account": "ACC001", "to_account": "12345678", "amount": 100.00 }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/accounts?user_id=<strong style="color:#c53030">1</strong></span>
+      <span class="auth-tag no-auth">IDOR</span>
+    </div>
+    <div class="ep-body">
+      Get account list for any user. Change user_id to access other users' accounts.
+    </div>
+  </div>
+
+  <div class="section-title">Admin</div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/admin/users</span>
+      <span class="auth-tag no-auth">No Auth Required</span>
+    </div>
+    <div class="ep-body">
+      Returns all users including password hashes and PII. No authentication check.
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header">
+      <span class="method DELETE">DELETE</span>
+      <span class="path">/api/v1/admin/users/<strong style="color:#c53030">{id}</strong></span>
+      <span class="auth-tag no-auth">No Auth</span>
+    </div>
+    <div class="ep-body">
+      Delete any user account. No authentication, no CSRF protection.
+    </div>
+  </div>
+
+  <!-- Open redirect link for crawler to find -->
+  <div style="margin-top:24px;font-size:.84rem;color:#a0aec0">
+    <a href="support.html?callback=https://example.com">Support with redirect</a> |
+    <a href="logout.html?next=https://example.com">Logout redirect</a> |
+    <a href="accounts.html">Accounts</a> |
+    <a href="register.html">Register</a>
+  </div>
+</div>
+</body>
+</html>

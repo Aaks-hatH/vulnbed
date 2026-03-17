@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+    h1 { font-size: 1.4rem; color: #1a365d; margin-bottom: 4px; }
+    .alert { background: #fff5f5; border: 1px solid #feb2b2; border-radius: 6px; padding: 14px; margin-bottom: 20px; color: #c53030; font-size: .88rem; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    th { text-align: left; padding: 8px 10px; background: #f7fafc; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; }
+    td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:hover td { background: #f7fafc; }
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: .75rem; font-weight: 600; }
+    .badge-admin { background: #fed7d7; color: #c53030; }
+    .badge-user  { background: #bee3f8; color: #2b6cb0; }
+    .btn-sm { padding: 4px 10px; border: none; border-radius: 4px; font-size: .78rem; cursor: pointer; font-weight: 600; }
+    .btn-del { background: #fed7d7; color: #c53030; }
+    .btn-edit { background: #bee3f8; color: #2b6cb0; }
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.1); text-align: center; }
+    .stat .val { font-size: 1.8rem; font-weight: 800; color: #1a365d; }
+    .stat .lbl { font-size: .75rem; color: #718096; margin-top: 2px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="admin.html">Admin</a>
+</nav>
+
+<div class="container">
+  <h1>Admin Dashboard</h1>
+  <div class="alert">
+    <strong>Vulnerability:</strong> This page requires no authentication. Any user can access /admin.html
+    and view or modify all user accounts. No session check, no CSRF token, no rate limiting.
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="val">1,284</div><div class="lbl">Total Users</div></div>
+    <div class="stat"><div class="val">$4.2M</div><div class="lbl">Total Deposits</div></div>
+    <div class="stat"><div class="val">847</div><div class="lbl">Active Sessions</div></div>
+    <div class="stat"><div class="val">23</div><div class="lbl">Flagged Accounts</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:14px">All User Accounts — <span style="color:#c53030">Unauthenticated Access</span></h3>
+    <!-- VULNERABLE: exposes all user data without auth, user_id is sequential (IDOR) -->
+    <table id="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Password Hash</th>
+          <th>Balance</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><a href="profile.html?user_id=1">Admin User</a></td>
+          <td>admin@vulnbank.com</td>
+          <!-- Exposed password hash -->
+          <td style="font-family:monospace;font-size:.78rem">$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy</td>
+          <td>$98,450.00</td>
+          <td><span class="badge badge-admin">ADMIN</span></td>
+          <td><button class="btn-sm btn-edit">Edit</button> <button class="btn-sm btn-del">Delete</button></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><a href="profile.html?user_id=2">Alice Johnson</a></td>
+          <td>alice@example.com</td>
+          <td style="font-family:monospace;font-size:.78rem">$2b$10$somehashedpasswordhere123456789abcdef</td>
+          <td>$12,300.50</td>
+          <td><span class="badge badge-user">USER</span></td>
+          <td><button class="btn-sm btn-edit">Edit</button> <button class="btn-sm btn-del">Delete</button></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><a href="profile.html?user_id=3">Bob Smith</a></td>
+          <td>bob@example.com</td>
+          <td style="font-family:monospace;font-size:.78rem">$2b$10$anotherhashhere987654321zyxwvutsrq</td>
+          <td>$7,890.25</td>
+          <td><span class="badge badge-user">USER</span></td>
+          <td><button class="btn-sm btn-edit">Edit</button> <button class="btn-sm btn-del">Delete</button></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><a href="profile.html?user_id=4">Charlie Brown</a></td>
+          <td>charlie@example.com</td>
+          <td style="font-family:monospace;font-size:.78rem">$2b$10$yetanotherhash112233445566778899aa</td>
+          <td>$31,000.00</td>
+          <td><span class="badge badge-user">USER</span></td>
+          <td><button class="btn-sm btn-edit">Edit</button> <button class="btn-sm btn-del">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SQL injection vulnerable search -->
+  <div class="card">
+    <h3 style="margin-bottom:12px">Search Users</h3>
+    <form method="GET" action="admin.html">
+      <input type="text" name="search" placeholder="Search users... (try: ' OR 1=1 --)"
+             style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:6px;width:300px;margin-right:8px;font-size:.88rem">
+      <button type="submit" style="padding:8px 16px;background:#1a365d;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer">Search</button>
+    </form>
+    <div id="search-result" style="margin-top:10px;font-size:.84rem;color:#718096"></div>
+    <script>
+      var s = new URLSearchParams(location.search).get('search');
+      if (s) {
+        // VULNERABLE: SQL injection simulation + XSS
+        document.getElementById('search-result').innerHTML = 'Query: SELECT * FROM users WHERE name LIKE \'%' + s + '%\'';
+      }
+    </script>
+  </div>
+
+</div>
+</body>
+</html>

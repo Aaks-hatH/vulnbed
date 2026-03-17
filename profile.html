@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 760px; margin: 40px auto; padding: 0 24px; }
+    h1 { font-size: 1.4rem; color: #1a365d; margin-bottom: 4px; }
+    .sub { color: #718096; font-size: .88rem; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 20px; }
+    .card h3 { margin-bottom: 16px; color: #2d3748; font-size: 1rem; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+    input, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: .9rem;
+      margin-bottom: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+    textarea { height: 90px; resize: vertical; }
+    input:focus, textarea:focus { border-color: #3182ce; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn { padding: 9px 20px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: .88rem; cursor: pointer; }
+    .idor-note { background: #fff5f5; border: 1px solid #feb2b2; border-radius: 6px; padding: 12px; font-size: .84rem; color: #c53030; margin-bottom: 16px; }
+    .user-links a { display: block; padding: 6px 0; color: #3182ce; font-size: .88rem; text-decoration: none; border-bottom: 1px solid #e2e8f0; }
+    .user-links a:last-child { border-bottom: none; }
+    .bio-display { background: #ebf8ff; border-radius: 6px; padding: 12px; font-size: .88rem; min-height: 50px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="transfer.html">Transfer</a>
+  <a href="profile.html">Profile</a>
+</nav>
+
+<div class="container">
+  <h1>My Profile</h1>
+  <p class="sub">Manage your personal information</p>
+
+  <!-- IDOR: user ID exposed in URL, no server-side ownership check -->
+  <div class="idor-note">
+    <strong>IDOR Vulnerability:</strong> User data loaded by ?user_id= parameter.
+    Try: <a href="profile.html?user_id=1">user_id=1</a>,
+    <a href="profile.html?user_id=2">user_id=2</a>,
+    <a href="profile.html?user_id=3">user_id=3</a>
+  </div>
+
+  <div class="card">
+    <h3>Personal Details</h3>
+    <!-- VULNERABLE: no CSRF token -->
+    <form method="POST" action="api/v1/profile/update" id="profile-form">
+      <input type="hidden" name="user_id" value="42">
+      <div class="row">
+        <div>
+          <label>First Name</label>
+          <input type="text" name="first_name" value="John" id="fname">
+        </div>
+        <div>
+          <label>Last Name</label>
+          <input type="text" name="last_name" value="Smith">
+        </div>
+      </div>
+      <label>Email</label>
+      <input type="email" name="email" value="john.smith@example.com">
+      <label>Phone</label>
+      <input type="tel" name="phone" value="+1-555-0100">
+      <label>Bio <span style="color:#c53030;font-size:.78rem">(stored XSS — input saved and rendered without sanitisation)</span></label>
+      <textarea name="bio" id="bio-input" placeholder="Tell us about yourself..."></textarea>
+      <button type="submit" class="btn">Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Stored XSS display: bio field rendered without encoding -->
+  <div class="card">
+    <h3>Your Bio</h3>
+    <div class="bio-display" id="bio-display">No bio set yet.</div>
+    <script>
+      // VULNERABLE: renders stored bio directly into innerHTML
+      var storedBio = localStorage.getItem('user_bio') || '';
+      if (storedBio) {
+        document.getElementById('bio-display').innerHTML = storedBio;
+      }
+      document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var bio = document.getElementById('bio-input').value;
+        localStorage.setItem('user_bio', bio);
+        // Stored XSS: renders without sanitisation
+        document.getElementById('bio-display').innerHTML = bio;
+      });
+    </script>
+  </div>
+
+  <!-- IDOR: links to other user profiles without auth check -->
+  <div class="card">
+    <h3>Other Users (IDOR)</h3>
+    <div class="user-links">
+      <a href="profile.html?user_id=1">User #1 — admin@vulnbank.com</a>
+      <a href="profile.html?user_id=2">User #2 — alice@example.com</a>
+      <a href="profile.html?user_id=3">User #3 — bob@example.com</a>
+      <a href="profile.html?user_id=4">User #4 — charlie@example.com</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

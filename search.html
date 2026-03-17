@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 760px; margin: 40px auto; padding: 0 24px; }
+    h1 { font-size: 1.4rem; color: #1a365d; margin-bottom: 20px; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-bar input { flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: .92rem; outline: none; }
+    .search-bar input:focus { border-color: #3182ce; }
+    .btn { padding: 10px 20px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .result-info { background: #ebf8ff; border-radius: 6px; padding: 12px 16px; font-size: .88rem; color: #2b6cb0; margin-bottom: 16px; }
+    .card { background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 10px; }
+    .card h3 { font-size: .95rem; margin-bottom: 6px; }
+    .card p { font-size: .84rem; color: #718096; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="transfer.html">Transfer</a>
+</nav>
+<div class="container">
+  <h1>Search</h1>
+  <!-- XSS: query param reflected in page without encoding -->
+  <form method="GET" action="search.html" class="search-bar">
+    <input type="text" name="q" id="sq" placeholder="Search transactions, accounts, help articles...">
+    <button type="submit" class="btn">Search</button>
+  </form>
+
+  <div id="result-info" class="result-info" style="display:none"></div>
+  <div id="results"></div>
+
+  <!-- Simulated results for crawler to follow -->
+  <div class="card">
+    <h3><a href="accounts.html">Current Account — ••• 4521</a></h3>
+    <p>Balance: $12,450.00 — Last activity: 17 Mar 2026</p>
+  </div>
+  <div class="card">
+    <h3><a href="transfer.html">Recent Transfer to Bob</a></h3>
+    <p>$500.00 — 13 Mar 2026 — TXN-001230</p>
+  </div>
+  <div class="card">
+    <h3><a href="support.html">Help: How to dispute a transaction</a></h3>
+    <p>Contact support to dispute any transaction within 60 days.</p>
+  </div>
+</div>
+
+<script>
+  var q = new URLSearchParams(location.search).get('q');
+  if (q) {
+    document.getElementById('sq').value = q;
+    var ri = document.getElementById('result-info');
+    ri.style.display = '';
+    // VULNERABLE: XSS — reflects search query without escaping
+    ri.innerHTML = 'Showing results for: <strong>' + q + '</strong> &mdash; ' + Math.floor(Math.random()*10+1) + ' results found';
+  }
+</script>
+</body>
+</html>

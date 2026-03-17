@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Disallow sensitive areas (but this exposes their existence)
+Disallow: /admin/
+Disallow: /api/v1/admin/
+Disallow: /config/
+Disallow: /backup/
+Disallow: /.env
+Disallow: /internal/
+
+Sitemap: https://aaks-hath.github.io/vulnbed/sitemap.xml

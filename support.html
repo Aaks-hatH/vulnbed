@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Support — VulnBank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; }
+    nav { background: #1a365d; padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 56px; }
+    nav .brand { color: #fff; font-weight: 700; text-decoration: none; }
+    nav a { color: #bee3f8; text-decoration: none; font-size: .9rem; }
+    .container { max-width: 640px; margin: 40px auto; padding: 0 24px; }
+    h1 { font-size: 1.4rem; color: #1a365d; margin-bottom: 20px; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 20px; }
+    label { display: block; font-size: .82rem; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+    input, textarea, select {
+      width: 100%; padding: 9px 12px; border: 1px solid #e2e8f0;
+      border-radius: 6px; font-size: .9rem; margin-bottom: 13px; font-family: inherit; outline: none;
+    }
+    textarea { height: 100px; }
+    .btn { padding: 10px 20px; background: #2b6cb0; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .open-redirect-note { background: #fff5f5; border: 1px solid #feb2b2; border-radius: 6px; padding: 12px; font-size: .84rem; color: #c53030; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="index.html">VulnBank</a>
+  <a href="accounts.html">Accounts</a>
+  <a href="support.html">Support</a>
+</nav>
+<div class="container">
+  <h1>Customer Support</h1>
+
+  <div class="open-redirect-note">
+    <strong>Open Redirect:</strong> The callback parameter on this page is unvalidated.
+    <a href="support.html?callback=https://evil.example.com">Try: ?callback=https://evil.example.com</a>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:14px">Contact Us</h3>
+    <form method="POST" action="api/v1/support/ticket">
+      <input type="hidden" name="callback" id="callback-field">
+      <label>Subject</label>
+      <select name="subject">
+        <option>Account Issue</option>
+        <option>Transfer Problem</option>
+        <option>Security Concern</option>
+        <option>Other</option>
+      </select>
+      <label>Message</label>
+      <textarea name="message" placeholder="Describe your issue..."></textarea>
+      <label>Email</label>
+      <input type="email" name="email" placeholder="your@email.com">
+      <button type="submit" class="btn">Submit Ticket</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:12px">Quick Links</h3>
+    <ul style="font-size:.88rem;line-height:2;padding-left:18px">
+      <li><a href="faq.html" style="color:#3182ce">FAQ</a></li>
+      <li><a href="accounts.html">Manage Accounts</a></li>
+      <li><a href="transfer.html">Money Transfer Help</a></li>
+      <li><a href="api-docs.html">API Documentation</a></li>
+      <li><a href="register.html">Open New Account</a></li>
+      <li><a href="forgot-password.html">Reset Password</a></li>
+    </ul>
+  </div>
+</div>
+<script>
+  // Open redirect: reads callback param and redirects to it without validation
+  var cb = new URLSearchParams(location.search).get('callback');
+  document.getElementById('callback-field').value = cb || '';
+  // VULNERABLE: unvalidated redirect
+  // if (cb) window.location.href = cb;
+</script>
+</body>
+</html>
